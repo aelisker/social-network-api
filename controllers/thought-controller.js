@@ -46,6 +46,35 @@ const thoughtController = {
         console.log(err);
         res.status(500).json(err);
       });
+  },
+  updateThought({ params, body }, res) {
+    Thought.findOneAndUpdate({ _id: params.id}, body, { new: true, runValidators: true })
+      .then(dbThoughtData => {
+        if (!dbThoughtData) {
+          res.status(404).json({ message: `No thought found with ID: ${params.id}` });
+          return;
+        }
+        res.json(dbThoughtData);
+      })
+      .catch(err => {
+        console.log(err);
+        // was curious about err codes, my general understanding for RESTful API is 400 is client side error, 500 is server side
+        res.status(500).json(err);
+      });
+  },
+  deleteThought({ params }, res) {
+    Thought.findOneAndDelete({ _id: params.id })
+    .then(dbThoughtData => {
+      if (!dbThoughtData) {
+        res.status(404).json({ message: `No thought found with ID: ${params.id}` });
+        return;
+      }
+      res.json(dbThoughtData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
   }
 }
 
