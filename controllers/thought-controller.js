@@ -3,7 +3,11 @@ const { Thought, User } = require('../models');
 const thoughtController = {
   getAllThoughts(req, res) {
     Thought.find({})
-      .select('-__v')
+      // .populate({
+      //   path: 'reactions',
+      //   select: '-__v'
+      // })
+      // .select('-__v')
       .sort({ _id: -1 })
       .then(dbThoughtData => res.json(dbThoughtData))
       .catch(err => {
@@ -13,6 +17,10 @@ const thoughtController = {
   },
   getThoughtById({ params }, res) {
     Thought.findOne({ _id: params.id })
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      })
       .select('-__v')
       .then(dbThoughtData => {
         if (!dbThoughtData) {
@@ -49,6 +57,11 @@ const thoughtController = {
   },
   updateThought({ params, body }, res) {
     Thought.findOneAndUpdate({ _id: params.id}, body, { new: true, runValidators: true })
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      })
+      .select('-__v')
       .then(dbThoughtData => {
         if (!dbThoughtData) {
           res.status(404).json({ message: `No thought found with ID: ${params.id}` });
@@ -70,6 +83,47 @@ const thoughtController = {
         return;
       }
       res.json(dbThoughtData);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+  },
+  addReaction({ params, body }, res) {
+    Thought.findOneAndUpdate(
+      { _id: params.thoughtId },
+      { $push: { reactions: body }},
+      { new: true, runValidators: true }
+    )
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      })
+      .select('-__v')
+      .then(dbReactionData => {
+        if (!dbReactionData) {
+          res.status(404).json({ message: `Cannot react. No thought found with ID: ${params.thoughtID}` });
+          return;
+        }
+        res.json(dbReactionData);
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json(err);
+      });
+  },
+  deleteReaction({ params }, res) {
+    Thought.findOneAndUpdate(
+      { _id: params.thoughtId },
+      { $pull: { reactions: { reactionId: params.reactionId } }},
+      { new: true }
+    )
+    .then(dbReactionData => {
+      if (!dbReactionData) {
+        res.status(404).json({ message: `Cannot react. No thought found with ID: ${params.thoughtID}` });
+        return;
+      }
+      res.json(dbReactionData);
     })
     .catch(err => {
       console.log(err);
