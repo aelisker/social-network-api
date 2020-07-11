@@ -120,7 +120,7 @@ const thoughtController = {
     )
     .then(dbReactionData => {
       if (!dbReactionData) {
-        res.status(404).json({ message: `Cannot react. No thought found with ID: ${params.thoughtID}` });
+        res.status(404).json({ message: `No reaction found with ID: ${params.reactionID}` });
         return;
       }
       res.json(dbReactionData);
